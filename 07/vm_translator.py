@@ -11,7 +11,6 @@ inequality_counter = {
     "eq": 0
 }
 # memory = 5-12
-# add, sub, neg, eq, gt, lt, and, or ,not
 
 def read_instructions(filename):
     with open(filename, 'r') as f:
