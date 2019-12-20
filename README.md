@@ -10,3 +10,7 @@ Yes! Every solution has been tested with the courses built-in test scripts. I've
 
 I would love to know if anything can be made better. Please let me know by submitting a PR!
 
+## Your directory structure doesn't line up with mine!
+
+I did my best to organized the solutions according to the original project layout but it's possible that the course changed since I last took it (late 2019). 
+

@@ -1,0 +1,62 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Mux.hdl
+
+/** 
+ * Multiplexor:
+ * out = a if sel == 0
+ *       b otherwise
+ */
+
+CHIP Mux {
+    IN a, b, sel;
+    OUT out;
+
+    PARTS:
+    Not(in=sel, out=notSel);
+    Not(in=a, out=notA);
+    Not(in=b, out=notB);
+
+    And(a=a ,b=b, out=aAndB);
+    And(a=notA, b=b, out=notAandb);
+    And(a=a, b=notB, out=notBanda);
+
+    And(a=notSel, b=aAndB, out=notSel1);
+    And(a=notSel, b=notBanda, out=notSel2);
+    Or(a=notSel1, b=notSel2, out=noSel);
+
+    And(a=sel, b=aAndB, out=sel1);
+    And(a=sel, b=notAandb, out=sel2);
+    Or(a=sel1, b=sel2, out=selYes);
+
+    Or(a=noSel, b=selYes, out=out);
+
+
+    /* 
+    the idea of mux is to make a decision on which input to send to the output based
+    on a flag called the selector 
+
+    this basic mux is also known as atwo way mux. You can have a four way mux where FOUR inputs are forwarded but since we have four possibilities to switch on we need more bits for the selector.
+
+    a b sel o
+
+    0 0 0 0
+    0 0 1 0
+    0 1 0 0
+    0 1 1 1
+    1 0 0 1
+    1 0 1 0
+    1 1 0 1
+    1 1 1 1
+
+    if we look at this truth table, we see four trues.
+
+    I basically split the gates into groups where sel is 0 and where sel is 1 and then OR all of them.
+
+    The question is ... can it be simplified?
+
+    Another question: why is this data selector useful?
+
+    */
+}
