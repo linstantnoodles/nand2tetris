@@ -54,3 +54,50 @@ However, if you look at the rows where the result is false, we'll be able to det
 Put another way, if `a` is NOT 0 AND `b` is NOT 0, then we must be `1` because according to the original OR table BOTH `a` and `b` must be 0 for the result to be `0`. Did you notice that we only used NOT and AND? :D 
 
 The other angle for approaching this basically starts from the conclusion of the previous approach. Are you ready? Here it is: A OR B is the same as saying that they're not BOTH false! I think this is my favorite intuition for this so far.
+
+## XOR
+
+My first solution to this involved using _lots_ of NAND gates but it's far easier to understand compared to the final, more optimized solution.
+
+It's easiest to start with a truth table:
+
+|a   |b   |result   |
+|---|---|---|
+|0   |0   |0   |
+|0   |1   |1   |
+|1   |0   |1   |
+|1   |1   |0   |
+
+If you look at the rows with a result of True, you'll see that we can produce this truth table with the following boolean function: 
+
+`(NOT A and B) OR (A and NOT B)`
+
+NOT uses 1 NAND. AND uses 2 NANDS. OR uses at least 1 NOT and 1 AND so that's at least 3 NANDS. In sum, if we tried realizing this gate using real chips it would require >= 9 NAND chips. This made me wonder: could we do better? 
+
+Turns out, the answer is yes according [wikipedia](https://en.wikipedia.org/wiki/XOR_gate):
+
+> An XOR gate circuit can be made from four NAND gates
+
+Spoiler alert: here's the full derivation process
+
+`(NOT (A AND B)) AND (NOT(NOT A AND NOT B))`
+
+Notice that the first expression is a NAND (this is key). Now after reducing the second expression using de morgans law.
+
+`(NOT (A AND B)) AND (A OR B)`
+
+Now lets distribute the first expression over the second based on the distributive law (AND can be distributed over OR).
+
+`(NOT (A AND B) AND A) OR (NOT (A AND B) AND B)`
+
+Is there a way we can change the OR to and AND? Lets apply demoregans law again with NOT to flip the OR to AND.
+
+
+`NOT(NOT (A AND B) AND A) AND NOT(NOT (A AND B) AND B)`
+
+Great! This looks like we have 2 NAND's on each side of the middle AND. Unfortunately, our actual result got negated. How do we negate it back? Apply NOT to the whole thing (but without applying de-morgans law because we want to keep the AND that we got in the previous step after flipping OR).
+
+`NOT(NOT(NOT (A AND B) AND A) AND NOT(NOT (A AND B) AND B))`
+
+Can you see where the 4 NAND's are in this expression?
+
