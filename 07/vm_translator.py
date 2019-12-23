@@ -10,7 +10,6 @@ inequality_counter = {
     "lt": 0,
     "eq": 0
 }
-# memory = 5-12
 
 def read_instructions(filename):
     with open(filename, 'r') as f:
@@ -26,14 +25,15 @@ def translate(prog_name, instructions):
 
 def parse(prog_name, vm_instruction):
     chunked = [x.strip() for x in vm_instruction.split(" ")]
+    format_as_instruction = lambda x: "\n".join(x)
     if len(chunked) == 3:
-        return parse_memory_command(prog_name, chunked)
+        return format_as_instruction(parse_memory_command(prog_name, chunked))
     elif len(chunked) == 1:
-        return parse_compute_command(chunked)
+        return format_as_instruction(parse_compute_command(chunked))
 
 def parse_compute_command(vm_instruction):
     if vm_instruction[0] == "add":
-        return "\n".join([
+        return [
             "@{}".format(stack_addr),
             "A=M-1",
             "D=M",
@@ -54,9 +54,9 @@ def parse_compute_command(vm_instruction):
             "M=D",
             "@{}".format(stack_addr),
             "M=M+1"
-        ])
+        ]
     elif vm_instruction[0] == "sub":
-        return "\n".join([
+        return [
             "@{}".format(stack_addr),
             "A=M-1",
             "D=M",
@@ -77,18 +77,18 @@ def parse_compute_command(vm_instruction):
             "M=D",
             "@{}".format(stack_addr),
             "M=M+1"
-        ])
+        ]
     elif vm_instruction[0] == "neg":
-        return "\n".join([
+        return [
             "@{}".format(stack_addr),
             "A=M-1",
             "D=-M",
             "M=D"
-        ])
+        ]
     elif vm_instruction[0] == "eq":
         inequality_counter["eq"] += 1
         idx = inequality_counter["eq"];
-        return "\n".join([
+        return [
             "@0",
             "A=M-1",
             "D=M",
@@ -129,12 +129,11 @@ def parse_compute_command(vm_instruction):
             "(CONTINUE_EQUAL.{})".format(idx),
             "@0",
             "M=M+1",
-        ])
+        ]
     elif vm_instruction[0] == "gt": 
         inequality_counter["gt"] += 1
         idx = inequality_counter["gt"];
-
-        return "\n".join([
+        return [
             "@0",
             "A=M-1",
             "D=M",
@@ -175,12 +174,11 @@ def parse_compute_command(vm_instruction):
             "(CONTINUE_GT.{})".format(idx),
             "@0",
             "M=M+1",
-        ])
+        ]
     elif vm_instruction[0] == "lt": 
         inequality_counter["lt"] += 1
         idx = inequality_counter["lt"];
-
-        return "\n".join([
+        return [
             "@0",
             "A=M-1",
             "D=M",
@@ -221,9 +219,9 @@ def parse_compute_command(vm_instruction):
             "(CONTINUE_LT.{})".format(idx),
             "@0",
             "M=M+1",
-        ])
+        ]
     elif vm_instruction[0] == "and":
-        return "\n".join([
+        return [
             "@{}".format(stack_addr),
             "A=M-1",
             "D=M",
@@ -245,9 +243,9 @@ def parse_compute_command(vm_instruction):
             "M=D",
             "@{}".format(stack_addr),
             "M=M+1"
-        ])
+        ]
     elif vm_instruction[0] == "or":
-        return "\n".join([
+        return [
             "@{}".format(stack_addr),
             "A=M-1",
             "D=M",
@@ -269,14 +267,14 @@ def parse_compute_command(vm_instruction):
             "M=D",
             "@{}".format(stack_addr),
             "M=M+1"
-        ])
+        ]
     elif vm_instruction[0] == "not":
-        return "\n".join([
+        return [
             "@{}".format(stack_addr),
             "A=M-1",
             "D=!M",
             "M=D"
-        ])
+        ]
 
 def parse_memory_command(prog_name, vm_instruction):
     action, segment, value = vm_instruction 
@@ -288,7 +286,7 @@ def parse_memory_command(prog_name, vm_instruction):
     }
     if action == "push":
         if segment == "constant":
-            return "\n".join([
+            return [
                 "@{}".format(value),
                 "D=A",
                 "@{}".format(stack_addr),
@@ -296,9 +294,9 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M+1"
-            ])
+            ]
         elif segment == "static":
-            return "\n".join([
+            return [
                 "@{}.{}".format(prog_name, value),
                 "D=M",
                 "@{}".format(stack_addr),
@@ -306,9 +304,9 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M+1"
-            ])
+            ]
         elif segment in ["argument", "local", "this", "that"]:
-            return "\n".join([
+            return [
                 "@{}".format(locations[segment]),
                 "D=M",
                 "@{}".format(value),
@@ -319,9 +317,9 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M+1"
-            ])
+            ]
         elif segment in ["temp"]:
-            return "\n".join([
+            return [
                 "@5",
                 "D=A",
                 "@{}".format(value),
@@ -332,10 +330,10 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M+1"
-            ])
+            ]
         elif segment in ["pointer"]:
             lookup_key = "this" if value == "0" else "that"
-            return "\n".join([
+            return [
                 "@{}".format(locations[lookup_key]),
                 "D=M",
 
@@ -344,10 +342,10 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M+1"
-            ])
+            ]
     elif action == "pop":
         if segment in ["argument", "local", "this", "that"]:
-            return "\n".join([
+            return [
                 "@{}".format(stack_addr),
                 "D=M-1",
                 "A=D",
@@ -369,9 +367,9 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M-1"
-            ])
+            ]
         elif segment in ["static"]: 
-            return "\n".join([
+            return [
                 "@{}".format(stack_addr),
                 "D=M-1",
                 "A=D",
@@ -380,9 +378,9 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M-1"
-            ])
+            ]
         elif segment in ["temp"]:
-            return "\n".join([
+            return [
                 "@{}".format(stack_addr),
                 "D=M-1",
                 "A=D",
@@ -404,10 +402,10 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M-1"
-            ])
+            ]
         elif segment in ["pointer"]: 
             lookup_key = "this" if value == "0" else "that"
-            return "\n".join([
+            return [
                 "@{}".format(stack_addr),
                 "D=M-1",
                 "A=D",
@@ -416,7 +414,7 @@ def parse_memory_command(prog_name, vm_instruction):
                 "M=D",
                 "@{}".format(stack_addr),
                 "M=M-1"
-            ])
+            ]
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
