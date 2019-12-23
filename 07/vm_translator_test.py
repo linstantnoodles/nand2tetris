@@ -278,7 +278,6 @@ class TestMemoryAccess(unittest.TestCase):
         ]))
 
 class TestStackOperations(unittest.TestCase):
-
     def test_translate_add(self):
         self.assertEqual(vm_translator.parse_compute_command(["add"]), "\n".join([
             "@0",
@@ -380,21 +379,149 @@ class TestStackOperations(unittest.TestCase):
         ]))
 
     def test_translate_lt(self):
-        pass
+        self.assertEqual(vm_translator.parse_compute_command(["lt"]), "\n".join([
+            "@0",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D",
+
+            "@0",
+            "M=M-1",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D-M",
+            "D=M",
+
+            "@0",
+            "M=M-1",
+
+
+            "@TEMP_LT.1",
+            "D;JLT",
+            "@TEMP_NLT.1",
+            "D;JGE",
+
+            "(TEMP_LT.1)",
+            "@0",
+            "A=M",
+            "M=-1",
+            "@CONTINUE_LT.1",
+            "0;JMP",
+
+            "(TEMP_NLT.1)",
+            "@0",
+            "A=M",
+            "M=0",
+            "@CONTINUE_LT.1",
+            "0;JMP",
+
+            "(CONTINUE_LT.1)",
+            "@0",
+            "M=M+1",
+        ]))
 
     def test_translate_gt(self):
-        pass
+        self.assertEqual(vm_translator.parse_compute_command(["gt"]), "\n".join([
+            "@0",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D",
+
+            "@0",
+            "M=M-1",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D-M",
+            "D=M",
+
+            "@0",
+            "M=M-1",
+
+
+            "@TEMP_GT.1",
+            "D;JGT",
+            "@TEMP_NGT.1",
+            "D;JLE",
+
+            "(TEMP_GT.1)",
+            "@0",
+            "A=M",
+            "M=-1",
+            "@CONTINUE_GT.1",
+            "0;JMP",
+
+            "(TEMP_NGT.1)",
+            "@0",
+            "A=M",
+            "M=0",
+            "@CONTINUE_GT.1",
+            "0;JMP",
+
+            "(CONTINUE_GT.1)",
+            "@0",
+            "M=M+1"]))
 
     def test_translate_and(self):
-        pass
+        self.assertEqual(vm_translator.parse_compute_command(["and"]), "\n".join([
+            "@0",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D",
+
+            "@0",
+            "M=M-1",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D&M",
+            "@0",
+            "M=M-1",
+            "@temp",
+            "D=M",
+            "@0",
+            "A=M",
+            "M=D",
+            "@0",
+            "M=M+1"
+        ]))
 
     def test_translate_or(self):
-        pass
+        self.assertEqual(vm_translator.parse_compute_command(["or"]), "\n".join([
+            "@0",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D",
+
+            "@0",
+            "M=M-1",
+            "A=M-1",
+            "D=M",
+            "@temp",
+            "M=D|M",
+            "@0",
+            "M=M-1",
+            "@temp",
+            "D=M",
+            "@0",
+            "A=M",
+            "M=D",
+            "@0",
+            "M=M+1"
+        ]))
 
     def test_translate_not(self):
-        pass
-
-
+        self.assertEqual(vm_translator.parse_compute_command(["not"]), "\n".join([
+            "@0",
+            "A=M-1",
+            "D=!M",
+            "M=D"
+        ]))
 
 if __name__ == '__main__':
     unittest.main()
