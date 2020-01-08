@@ -31,32 +31,4 @@ CHIP Mux {
     Or(a=sel1, b=sel2, out=selYes);
 
     Or(a=noSel, b=selYes, out=out);
-
-
-    /* 
-    the idea of mux is to make a decision on which input to send to the output based
-    on a flag called the selector 
-
-    this basic mux is also known as atwo way mux. You can have a four way mux where FOUR inputs are forwarded but since we have four possibilities to switch on we need more bits for the selector.
-
-    a b sel o
-
-    0 0 0 0
-    0 0 1 0
-    0 1 0 0
-    0 1 1 1
-    1 0 0 1
-    1 0 1 0
-    1 1 0 1
-    1 1 1 1
-
-    if we look at this truth table, we see four trues.
-
-    I basically split the gates into groups where sel is 0 and where sel is 1 and then OR all of them.
-
-    The question is ... can it be simplified?
-
-    Another question: why is this data selector useful?
-
-    */
 }

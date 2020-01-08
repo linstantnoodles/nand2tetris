@@ -9,7 +9,7 @@ Why does that work?
 I think there's a few concepts at play here that you need to understand to grasp the full picture: 
 
 1. A NAND A is equivalent to NOT(A AND A)
-2. `A * A` (`*` is the boolean algebra symbol for AND) is always A by the idempotent law. In other words, when you apply the AND operator to an element itself, it retains its value no matter how many times it's applied. A simpler explanation for this is: true and true will always be true. false and false will always be false!
+2. `A * A` (`*` is the boolean algebra symbol for AND) is always A by the idempotent law. In other words, when you apply the AND operator to an element itself, it retains its value no matter how many times it's applied. A simpler explanation for this is: true and true will always be true. false and false will always be false.
 3. Since `A AND A` gives back itself, we can reduce it to `A` which makes the full expression `NOT(A)`.
 
 ## AND
@@ -57,9 +57,9 @@ The other angle for approaching this basically starts from the conclusion of the
 
 ## XOR
 
-My first solution to this involved using _lots_ of NAND gates but it's far easier to understand compared to the final, more optimized solution.
+My first solution to this involved AND, NOT, and OR.  It's far easier to understand compared to the final, more optimized solution but it uses a lot more NAND gates.
 
-It's easiest to start with a truth table:
+Starting from a truth table:
 
 |a   |b   |result   |
 |---|---|---|
@@ -72,9 +72,11 @@ If you look at the rows with a result of True, you'll see that we can produce th
 
 `(NOT A and B) OR (A and NOT B)`
 
-NOT uses 1 NAND. AND uses 2 NANDS. OR uses at least 1 NOT and 1 AND so that's at least 3 NANDS. In sum, if we tried realizing this gate using real chips it would require >= 9 NAND chips. This made me wonder: could we do better? 
+NOT uses 1 NAND. AND uses 2 NANDS. OR uses at least 1 NOT and 1 AND so that's at least 3 NANDS. In sum, if we tried realizing this gate using real chips it would require >= 9 NAND chips.
 
-Turns out, the answer is yes according [wikipedia](https://en.wikipedia.org/wiki/XOR_gate):
+This made me wonder: could we do better? 
+
+Turns out, the answer is yes according to [wikipedia](https://en.wikipedia.org/wiki/XOR_gate):
 
 > An XOR gate circuit can be made from four NAND gates
 
@@ -92,7 +94,6 @@ Now lets distribute the first expression over the second based on the distributi
 
 Is there a way we can change the OR to and AND? Lets apply demoregans law again with NOT to flip the OR to AND.
 
-
 `NOT(NOT (A AND B) AND A) AND NOT(NOT (A AND B) AND B)`
 
 Great! This looks like we have 2 NAND's on each side of the middle AND. Unfortunately, our actual result got negated. How do we negate it back? Apply NOT to the whole thing (but without applying de-morgans law because we want to keep the AND that we got in the previous step after flipping OR).
@@ -100,4 +101,100 @@ Great! This looks like we have 2 NAND's on each side of the middle AND. Unfortun
 `NOT(NOT(NOT (A AND B) AND A) AND NOT(NOT (A AND B) AND B))`
 
 Can you see where the 4 NAND's are in this expression?
+
+# Mux 
+
+The truth table for the multiplexor is as follows:
+
+|a   |b   |sel| result|
+|---|---|---|---|
+|0   |0   |0   |0 |
+|0   |1   |0   |0 |
+|1   |0   |0   |1 |
+|1   |1   |0   |1 |
+|0   |0   |1   |0 |
+|0   |1   |1   |1 |
+|1   |0   |1   |0 |
+|1   |1   |1   |1 |
+
+The rows where the result is `1` helps us write an OR expression to represent the table.
+
+```
+(A AND (NOT B) AND (NOT SEL))  
+OR 
+(A AND B AND (NOT SEL)) 
+OR
+((NOT A) AND B AND SEL) 
+OR
+(A AND B AND SEL) 
+```
+
+`A AND B` is repeated twice - one when SEL is 0 and one when sel is 1. We can just eliminate the SEL check in that case.
+
+```
+(A AND (NOT B) AND (NOT SEL))  
+OR 
+(A AND B) 
+OR
+((NOT A) AND B AND SEL) 
+```
+
+# DMux
+
+|in  |sel | {a, b}|
+|---|---|---|
+|0   |0 |0,0 |
+|0   |1 |0,0 |
+|1   |0 |1,0 |
+|1   |1 |0,1 |
+
+The key observation here is that both the output of `a` and `b` in `{a, b}` are true under one condition.
+
+# Mux4Way16
+
+This is the first time we're dealing with a multi-bit selector and the order of those bits _matter_. 
+
+Take this line for instance:
+
+`out = b if sel == 01`
+
+Turns out the actual bit values are stored in _reverse_ in the virtual hardware. In other words `0` would be at `sel[1]` and `1` would be at `sel[0]`.
+
+For every bit bus you see in the course text (HDL file comments, chapter text), you'll need to remember this difference when writing your chips.
+
+The key to the implementation is to arrange a binary tree like pattern of chips where each level is separated by a Mux chip.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
