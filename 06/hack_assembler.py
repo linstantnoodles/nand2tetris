@@ -166,21 +166,17 @@ def parse_c_instruction(line):
     if ";" in line: 
         jump = line.split(";").pop().strip()
     return "111" + comp_map.get(comp, "0000000") + dest_map.get(dest, "000") + jump_map.get(jump, "000")
-    
-def decimal_to_binary(decimal_value, count=16):  
-  power_list = []
-  for i in range(count-1, -1, -1):
-      x = 2 ** i   
-      power_list.append(x)
-  result = ["0"] * count
-  curr = decimal_value
-  while curr: 
-      for idx, i in enumerate(power_list): 
-          if i <= curr:
-              result[idx] ="1"
-              curr -= i
-              break
-  return "".join(result)
+   
+def decimal_to_binary(decimal_value, count=16):
+    value = decimal_value 
+    final_value = ""
+    while value != 0:
+        if value % 2 == 0:
+            final_value = "0" + final_value
+        else:
+            final_value = "1" + final_value
+        value = value // 2
+    return final_value.rjust(16, "0")
 
 if __name__ == '__main__': 
     if len(sys.argv) < 3:
