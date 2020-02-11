@@ -144,11 +144,11 @@ OR
 |in  |sel | {a, b}|
 |---|---|---|
 |0   |0 |0,0 |
-|0   |1 |0,0 |
+|0   |1 |0,1 |
 |1   |0 |1,0 |
 |1   |1 |0,1 |
 
-The key observation here is that both the output of `a` and `b` in `{a, b}` are true under one condition.
+The key observation here is that both the output of `a` and `b` in `{a, b}` are true under one condition. What this means is you can write a boolean function for the `a` pin and the `b` pin!
 
 # Mux4Way16
 
@@ -162,11 +162,37 @@ Turns out the actual bit values are stored in _reverse_ in the virtual hardware.
 
 For every bit bus you see in the course text (HDL file comments, chapter text), you'll need to remember this difference when writing your chips.
 
-The key to the implementation is to arrange a binary tree like pattern of chips where each level is separated by a Mux chip.
+the key to the implementation is to arrange a binary tree like pattern of chips where each level is separated by a mux chip.
 
+# DMux4way 
 
+Given a multi-bit selector, we want our input to one of four pins a, b, c, and d. 
 
+```
+{a, b, c, d} = {in, 0, 0, 0} if sel == 00
+               {0, in, 0, 0} if sel == 01
+               {0, 0, in, 0} if sel == 10
+               {0, 0, 0, in} if sel == 11
+```
 
+We can solve this by treat each bit as a separate selector again. We'll use the first bit in a DMux, but ... what do we pass in for the input pins `a` and `b`? 
+
+What if we gave it 'a' and 'b'? That will return either 'a' or 'b' depending on the value of our first selector bit and we'll output that to the corresponding output pins `a` and `b`. We'll then do the same for 'c' and 'd'! Will that work? Turns out, no because take the situation of sel == 11. We'll end up with the output {0, in, 0, in}. What we expect is {0, 0, 0, in}. 
+
+This happened because the MSB (the left hand side in the notation aka most significant byte) is not a selector for {0, 0, x, 0} and {0, 0, 0, x}. It's in reality, based on the chart provided, a selector for {x, 0, 0, 0} and {0, 0, x, 0}. So we need to first find the value of x and then use the second bit to determine where it falls. 
+
+```
+// This outputs our temp result x basically
+DMux(in=in, sel=sel[0], a=outOne, b=outTwo);
+// This uses the first selector to place it either on the left hand side or right hand side
+DMux(in=outOne, sel=sel[1], a=a, b=c);
+// We'll do this for every left / right pair!
+DMux(in=outTwo, sel=sel[1], a=b, b=d);
+```
+
+# Tips 
+
+* When reading buses, remember that actual bit values are stored in _reverse_ compared to how they're represented in text. The least significant bit will come first. The bus 00000001 will be stored as 10000000. I'm not sure why but it probably has something to do with that fact that it's simply easier to interpret a 0 index as starting from the left. See [here](https://en.wikipedia.org/wiki/Bit_numbering#Most_significant_bit) for more details.
 
 
 
