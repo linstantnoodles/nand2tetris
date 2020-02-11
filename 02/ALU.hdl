@@ -42,10 +42,12 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-    // zx,nx,zy,ny
+    // zx, nx
     Mux16(a=x, b=false, sel=zx, out=xfirst);
     Not16(in=xfirst, out=notX);
     Mux16(a=xfirst, b=notX, sel=nx, out=xsecond);
+
+    // zy, ny
     Mux16(a=y, b=false, sel=zy, out=yfirst);
     Not16(in=yfirst, out=notY);
     Mux16(a=yfirst, b=notY, sel=ny, out=ysecond);
@@ -54,17 +56,18 @@ CHIP ALU {
     Add16(a=xsecond, b=ysecond, out=fsum);
     And16(a=xsecond, b=ysecond, out=fand);
     Mux16(a=fand, b=fsum, sel=f, out=fout);
-    Not16(in=fout, out=notfout);
-    Mux16(a=fout, b=notfout, sel=no, out=out);
 
-    // Need to do this to output narrower buses in order to use them as inputs
-    Mux16(a=fout, b=notfout, sel=no, out[0..7]=outOne);
-    Mux16(a=fout, b=notfout, sel=no, out[8..15]=outTwo);
-    Mux16(a=fout, b=notfout, sel=no, out[15]=outThree);
+    // no
+    Not16(in=fout, out=notfout);
+    Mux16(a=fout, b=notfout, sel=no, out=out, out[0..7]=outOne, out[8..15]=outTwo, out[15]=outThree);
+
+    // zr
     Or8Way(in=outOne, out=positiveOne);
     Or8Way(in=outTwo, out=positiveTwo);
     Or(a=positiveOne, b=positiveTwo, out=positiveResult);
     Not(in=positiveResult, out=isZero);
     And(a=isZero, b=true, out=zr);
+
+    // ng
     And(a=outThree, b=true, out=ng);
 }
