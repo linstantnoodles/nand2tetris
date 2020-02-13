@@ -1,12 +1,7 @@
 import sys
 import os
 
-stack_addr = 0
-local_addr = 1
-arg_addr = 2
-this_addr = 3
-that_addr = 4
-inequality_counter = {
+op_jump_index = {
     "gt": 0,
     "lt": 0,
     "eq": 0
@@ -21,18 +16,14 @@ def return_index(name):
     return function_return_index[name]
 
 def bootstrap():
-    print("--bootstrap--")
     format_as_instruction = lambda x: "\n".join(x)
     res = [
-        "@261",
+        "@256",
         "D=A",
-        "@0",
-        "M=D",
-        "@Sys.init",
-        "0;JMP"
-        ] 
+        "@SP",
+        "M=D"
+    ] + parse_function_command(["call", "Sys.init", 0])
     x = format_as_instruction(res) + "\n"
-    print(x)
     return x
 
 def read_files(folder_path):
@@ -54,7 +45,6 @@ def translate(prog_name, instructions):
 
 def parse(prog_name, vm_instruction):
     chunked = [x.strip() for x in vm_instruction.split(" ")]
-    print("--{}--".format(chunked))
     format_as_instruction = lambda x: "\n".join(x)
     res = None
     if is_branching_command(chunked):
@@ -65,8 +55,8 @@ def parse(prog_name, vm_instruction):
         res = format_as_instruction(parse_memory_command(prog_name, chunked))
     if is_compute_command(chunked):
         res = format_as_instruction(parse_compute_command(chunked))
-    print(res)
     return res
+
 def is_branching_command(instruction):
     return instruction[0] in ["label", "goto", "if-goto"]
 
@@ -89,65 +79,65 @@ def parse_function_command(instruction):
             # push return address
             "@{}$ret.{}".format(fn_name, fn_return_idx),
             "D=A", 
-            "@{}".format(stack_addr), 
+            "@SP", 
             "A=M",
             "M=D",
             # increment pointer
-            "@{}".format(stack_addr), 
+            "@SP", 
             "M=M+1",
 
             # push lcl into stack
-            "@{}".format(local_addr), 
+            "@LCL", 
             "D=M",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "A=M",
             "M=D",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "M=M+1",
 
             # push arg into stack
-            "@{}".format(arg_addr), 
+            "@ARG", 
             "D=M",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "A=M",
             "M=D",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "M=M+1",
 
             # push this into stack
-            "@{}".format(this_addr), 
+            "@THIS", 
             "D=M",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "A=M",
             "M=D",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "M=M+1",
 
             # push that into stack
-            "@{}".format(that_addr), 
+            "@THAT", 
             "D=M",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "A=M",
             "M=D",
-            "@{}".format(stack_addr), 
+            "@SP", 
             "M=M+1",
 
             # SP - 5 - nargs
             "@5",
             "D=A",
-            "@{}".format(stack_addr),
+            "@SP",
             "D=M-D",
             "@{}".format(arg_count),
             "D=D-A",
 
             # reposition arg
-            "@{}".format(arg_addr),
+            "@ARG",
             "M=D",
 
             # LCL = SP
-            "@0",
+            "@SP",
             "D=M",
-            "@{}".format(local_addr),
+            "@LCL",
             "M=D",
 
             # jump
@@ -166,7 +156,7 @@ def parse_function_command(instruction):
     if instruction[0] == "return":
         return [
             # endFrame = LCL
-            "@{}".format(local_addr),
+            "@LCL",
             "D=M",
             "@endFrame",
             "M=D",
@@ -179,20 +169,20 @@ def parse_function_command(instruction):
             "M=D",
 
             # Set *ARG=result (value at top of stack)
-            "@{}".format(stack_addr),
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M",
-            "@{}".format(arg_addr),
+            "@ARG",
             "A=M",
             "M=D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
 
             # update SP
-            "@{}".format(arg_addr),
+            "@ARG",
             "D=M",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=D+1",
 
             # set LCL
@@ -202,7 +192,7 @@ def parse_function_command(instruction):
             "D=M-D",
             "A=D",
             "D=M",
-            "@{}".format(that_addr),
+            "@THAT",
             "M=D",
 
             # set ARG
@@ -212,7 +202,7 @@ def parse_function_command(instruction):
             "D=M-D",
             "A=D",
             "D=M",
-            "@{}".format(this_addr),
+            "@THIS",
             "M=D",
 
             # set THIS
@@ -223,7 +213,7 @@ def parse_function_command(instruction):
             "D=M-D",
             "A=D",
             "D=M",
-            "@{}".format(arg_addr),
+            "@ARG",
             "M=D",
 
             # set THAT
@@ -233,7 +223,7 @@ def parse_function_command(instruction):
             "D=M-D",
             "A=D",
             "D=M",
-            "@{}".format(local_addr),
+            "@LCL",
             "M=D",
 
             # return
@@ -254,7 +244,7 @@ def parse_branch_command(vm_instruction):
         ]
     if vm_instruction[0] == "if-goto": 
         return [
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "A=M",
             "D=M",
@@ -265,68 +255,68 @@ def parse_branch_command(vm_instruction):
 def parse_compute_command(vm_instruction):
     if vm_instruction[0] == "add":
         return [
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp",
             "M=M+D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "@temp",
             "D=M",
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M",
             "M=D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M+1"
         ]
     elif vm_instruction[0] == "sub":
         return [
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D-M",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "@temp",
             "D=M",
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M",
             "M=D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M+1"
         ]
     elif vm_instruction[0] == "neg":
         return [
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M-1",
             "D=-M",
             "M=D"
         ]
     elif vm_instruction[0] == "eq":
-        inequality_counter["eq"] += 1
-        idx = inequality_counter["eq"];
+        op_jump_index["eq"] += 1
+        idx = op_jump_index["eq"];
         return [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
@@ -334,7 +324,7 @@ def parse_compute_command(vm_instruction):
             "M=D-M",
             "D=M",
 
-            "@0",
+            "@SP",
             "M=M-1",
 
 
@@ -344,34 +334,34 @@ def parse_compute_command(vm_instruction):
             "D;JNE",
 
             "(TEMP_EQUAL.{})".format(idx),
-            "@0",
+            "@SP",
             "A=M",
             "M=-1",
             "@CONTINUE_EQUAL.{}".format(idx),
             "0;JMP",
 
             "(TEMP_NOTEQUAL.{})".format(idx),
-            "@0",
+            "@SP",
             "A=M",
             "M=0",
             "@CONTINUE_EQUAL.{}".format(idx),
             "0;JMP",
 
             "(CONTINUE_EQUAL.{})".format(idx),
-            "@0",
+            "@SP",
             "M=M+1",
         ]
     elif vm_instruction[0] == "gt": 
-        inequality_counter["gt"] += 1
-        idx = inequality_counter["gt"];
+        op_jump_index["gt"] += 1
+        idx = op_jump_index["gt"];
         return [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
@@ -379,7 +369,7 @@ def parse_compute_command(vm_instruction):
             "M=D-M",
             "D=M",
 
-            "@0",
+            "@SP",
             "M=M-1",
 
 
@@ -389,34 +379,34 @@ def parse_compute_command(vm_instruction):
             "D;JLE",
 
             "(TEMP_GT.{})".format(idx),
-            "@0",
+            "@SP",
             "A=M",
             "M=-1",
             "@CONTINUE_GT.{}".format(idx),
             "0;JMP",
 
             "(TEMP_NGT.{})".format(idx),
-            "@0",
+            "@SP",
             "A=M",
             "M=0",
             "@CONTINUE_GT.{}".format(idx),
             "0;JMP",
 
             "(CONTINUE_GT.{})".format(idx),
-            "@0",
+            "@SP",
             "M=M+1",
         ]
     elif vm_instruction[0] == "lt": 
-        inequality_counter["lt"] += 1
-        idx = inequality_counter["lt"];
+        op_jump_index["lt"] += 1
+        idx = op_jump_index["lt"];
         return [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
@@ -424,7 +414,7 @@ def parse_compute_command(vm_instruction):
             "M=D-M",
             "D=M",
 
-            "@0",
+            "@SP",
             "M=M-1",
 
 
@@ -434,79 +424,80 @@ def parse_compute_command(vm_instruction):
             "D;JGE",
 
             "(TEMP_LT.{})".format(idx),
-            "@0",
+            "@SP",
             "A=M",
             "M=-1",
             "@CONTINUE_LT.{}".format(idx),
             "0;JMP",
 
             "(TEMP_NLT.{})".format(idx),
-            "@0",
+            "@SP",
             "A=M",
             "M=0",
             "@CONTINUE_LT.{}".format(idx),
             "0;JMP",
 
             "(CONTINUE_LT.{})".format(idx),
-            "@0",
+            "@SP",
             "M=M+1",
         ]
     elif vm_instruction[0] == "and":
         return [
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D&M",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "@temp",
             "D=M",
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M",
             "M=D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M+1"
         ]
     elif vm_instruction[0] == "or":
         return [
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D|M",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M-1",
             "@temp",
             "D=M",
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M",
             "M=D",
-            "@{}".format(stack_addr),
+            "@SP",
             "M=M+1"
         ]
     elif vm_instruction[0] == "not":
         return [
-            "@{}".format(stack_addr),
+            "@SP",
             "A=M-1",
             "D=!M",
             "M=D"
         ]
 
+# TODO improve? talk about the jump commands in notes
 def parse_memory_command(prog_name, vm_instruction):
     action, segment, value = vm_instruction[0], vm_instruction[1], vm_instruction[2]
     locations = {
@@ -520,20 +511,20 @@ def parse_memory_command(prog_name, vm_instruction):
             return [
                 "@{}".format(value),
                 "D=A",
-                "@{}".format(stack_addr),
+                "@SP",
                 "A=M",
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M+1"
             ]
         elif segment == "static":
             return [
                 "@{}.{}".format(prog_name, value),
                 "D=M",
-                "@{}".format(stack_addr),
+                "@SP",
                 "A=M",
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M+1"
             ]
         elif segment in ["argument", "local", "this", "that"]:
@@ -543,10 +534,10 @@ def parse_memory_command(prog_name, vm_instruction):
                 "@{}".format(value),
                 "A=D+A",
                 "D=M",
-                "@{}".format(stack_addr),
+                "@SP",
                 "A=M",
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M+1"
             ]
         elif segment in ["temp"]:
@@ -556,10 +547,10 @@ def parse_memory_command(prog_name, vm_instruction):
                 "@{}".format(value),
                 "A=D+A",
                 "D=M",
-                "@{}".format(stack_addr),
+                "@SP",
                 "A=M",
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M+1"
             ]
         elif segment in ["pointer"]:
@@ -568,16 +559,16 @@ def parse_memory_command(prog_name, vm_instruction):
                 "@{}".format(locations[lookup_key]),
                 "D=M",
 
-                "@{}".format(stack_addr),
+                "@SP",
                 "A=M",
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M+1"
             ]
     elif action == "pop":
         if segment in ["argument", "local", "this", "that"]:
             return [
-                "@{}".format(stack_addr),
+                "@SP",
                 "D=M-1",
                 "A=D",
                 "D=M",
@@ -596,23 +587,23 @@ def parse_memory_command(prog_name, vm_instruction):
                 "@temp2",
                 "A=M",
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M-1"
             ]
         elif segment in ["static"]: 
             return [
-                "@{}".format(stack_addr),
+                "@SP",
                 "D=M-1",
                 "A=D",
                 "D=M", 
                 "@{}.{}".format(prog_name, value),
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M-1"
             ]
         elif segment in ["temp"]:
             return [
-                "@{}".format(stack_addr),
+                "@SP",
                 "D=M-1",
                 "A=D",
                 "D=M",
@@ -631,40 +622,41 @@ def parse_memory_command(prog_name, vm_instruction):
                 "@temp2",
                 "A=M",
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M-1"
             ]
         elif segment in ["pointer"]: 
             lookup_key = "this" if value == "0" else "that"
             return [
-                "@{}".format(stack_addr),
+                "@SP",
                 "D=M-1",
                 "A=D",
                 "D=M", 
                 "@{}".format(locations[lookup_key]),
                 "M=D",
-                "@{}".format(stack_addr),
+                "@SP",
                 "M=M-1"
             ]
 
+def translate_file(program_name, file_name):
+    if file_name[-3:] != ".vm":
+        raise Exception("Invalid VM file. Missing .vm extension")
+    instructions = read_instructions(file_name)
+    return translate(program_name, instructions)
+
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        raise Exception("You need to supply a vm file and target")
-    file_name = sys.argv[1]
-    target_name = sys.argv[2]
-    if os.path.isdir(file_name):
-        files = read_files(file_name)
+    if len(sys.argv) < 2:
+        raise Exception("You need to supply a vm file or directory")
+    source = sys.argv[1]
+    program_name = source.split("/").pop().split(".")[0]
+    target_file_name = "{}.asm".format(program_name)
+    output = ""
+    if os.path.isdir(source):
         output = bootstrap()
-        for file_name in files:
-            instructions = read_instructions(file_name)
-            prog_name = file_name.split("/").pop().split(".")[0]
-            output += translate(prog_name, instructions)
-        with open(target_name, "w") as f:
-            f.write(output)
+        for file_name in read_files(source):
+            output += translate_file(program_name, file_name)
     else:
-        instructions = read_instructions(file_name)
-        prog_name = file_name.split("/").pop().split(".")[0]
-        output = translate(prog_name, instructions)
-        with open(target_name, "w") as f:
-            f.write(output)
+        output = translate_file(program_name, source)
+    with open(target_file_name, "w") as f:
+        f.write(output)
 

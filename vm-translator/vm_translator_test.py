@@ -8,19 +8,19 @@ class TestTranslation(unittest.TestCase):
         expected_first_line = "\n".join([
             "@1",
             "D=A",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
         expected_second_line = "\n".join([
             "@2",
             "D=A",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
         self.assertEqual("\n".join([expected_first_line, expected_second_line]) + "\n", result)
@@ -35,10 +35,10 @@ class TestMemoryAccess(unittest.TestCase):
         self.assertEqual(result, [
             "@1",
             "D=A",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
@@ -50,10 +50,10 @@ class TestMemoryAccess(unittest.TestCase):
             "@1",
             "A=D+A",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
@@ -65,10 +65,10 @@ class TestMemoryAccess(unittest.TestCase):
             "@15",
             "A=D+A",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
@@ -80,10 +80,10 @@ class TestMemoryAccess(unittest.TestCase):
             "@15",
             "A=D+A",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
@@ -95,10 +95,10 @@ class TestMemoryAccess(unittest.TestCase):
             "@15",
             "A=D+A",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
@@ -110,10 +110,10 @@ class TestMemoryAccess(unittest.TestCase):
             "@7",
             "A=D+A",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
@@ -122,10 +122,10 @@ class TestMemoryAccess(unittest.TestCase):
         self.assertEqual(result, [
                 "@3",
                 "D=M",
-                "@0",
+                "@SP",
                 "A=M",
                 "M=D",
-                "@0",
+                "@SP",
                 "M=M+1"
         ])
 
@@ -134,10 +134,10 @@ class TestMemoryAccess(unittest.TestCase):
         self.assertEqual(result, [
             "@4",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
@@ -146,17 +146,17 @@ class TestMemoryAccess(unittest.TestCase):
         self.assertEqual(result, [
             "@Prog.3",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
     def test_pop_argument(self):
         result = vm_translator.parse_memory_command("prog", ["pop", "argument", "3"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M",
@@ -175,14 +175,14 @@ class TestMemoryAccess(unittest.TestCase):
             "@temp2",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
 
     def test_pop_local(self):
         result = vm_translator.parse_memory_command("prog", ["pop", "local", "5"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M",
@@ -201,14 +201,14 @@ class TestMemoryAccess(unittest.TestCase):
             "@temp2",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
 
     def test_pop_this(self):
         result = vm_translator.parse_memory_command("prog", ["pop", "this", "5"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M",
@@ -227,14 +227,14 @@ class TestMemoryAccess(unittest.TestCase):
             "@temp2",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
 
     def test_pop_local(self):
         result = vm_translator.parse_memory_command("prog", ["pop", "that", "5"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M",
@@ -253,27 +253,27 @@ class TestMemoryAccess(unittest.TestCase):
             "@temp2",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
 
     def test_pop_static(self):
         result = vm_translator.parse_memory_command("Prog", ["pop", "static", "2"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M", 
             "@Prog.2",
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
     
     def test_pop_temp(self):
         result = vm_translator.parse_memory_command("Prog", ["pop", "temp", "2"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M",
@@ -292,33 +292,33 @@ class TestMemoryAccess(unittest.TestCase):
             "@temp2",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
 
     def test_pop_pointer_0_sets_this_address(self):
         result = vm_translator.parse_memory_command("Prog", ["pop", "pointer", "0"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M", 
             "@3", # this addr
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
 
     def test_pop_pointer_1_sets_that_address(self):
         result = vm_translator.parse_memory_command("Prog", ["pop", "pointer", "1"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "D=M-1",
             "A=D",
             "D=M", 
             "@4", # that addr
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1"
         ])
 
@@ -326,58 +326,58 @@ class TestStackOperations(unittest.TestCase):
     def test_translate_add(self):
         result = vm_translator.parse_compute_command(["add"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp",
             "M=M+D",
-            "@0",
+            "@SP",
             "M=M-1",
             "@temp",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
     def test_translate_sub(self):
         result = vm_translator.parse_compute_command(["sub"])
         self.assertEqual(result, [
-            "@0", # load value at top of stack and store in temp
+            "@SP", # load value at top of stack and store in temp
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
-            "@0", # decrement stack and load next value 
+            "@SP", # decrement stack and load next value 
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp", # store result of compute into temp
             "M=D-M",
-            "@0", 
+            "@SP", 
             "M=M-1",
 
             "@temp", # push result onto stack
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
     def test_translate_neg(self):
         result = vm_translator.parse_compute_command(["neg"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=-M",
             "M=D"
@@ -386,13 +386,13 @@ class TestStackOperations(unittest.TestCase):
     def test_translate_eq(self):
         result = vm_translator.parse_compute_command(["eq"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
@@ -400,7 +400,7 @@ class TestStackOperations(unittest.TestCase):
             "M=D-M",
             "D=M",
 
-            "@0",
+            "@SP",
             "M=M-1",
 
             "@TEMP_EQUAL.1",
@@ -409,34 +409,34 @@ class TestStackOperations(unittest.TestCase):
             "D;JNE",
 
             "(TEMP_EQUAL.1)",
-            "@0",
+            "@SP",
             "A=M",
             "M=-1",
             "@CONTINUE_EQUAL.1",
             "0;JMP",
 
             "(TEMP_NOTEQUAL.1)",
-            "@0",
+            "@SP",
             "A=M",
             "M=0",
             "@CONTINUE_EQUAL.1",
             "0;JMP",
 
             "(CONTINUE_EQUAL.1)",
-            "@0",
+            "@SP",
             "M=M+1",
         ])
 
     def test_translate_lt(self):
         result = vm_translator.parse_compute_command(["lt"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
@@ -444,7 +444,7 @@ class TestStackOperations(unittest.TestCase):
             "M=D-M",
             "D=M",
 
-            "@0",
+            "@SP",
             "M=M-1",
 
 
@@ -454,21 +454,21 @@ class TestStackOperations(unittest.TestCase):
             "D;JGE",
 
             "(TEMP_LT.1)",
-            "@0",
+            "@SP",
             "A=M",
             "M=-1",
             "@CONTINUE_LT.1",
             "0;JMP",
 
             "(TEMP_NLT.1)",
-            "@0",
+            "@SP",
             "A=M",
             "M=0",
             "@CONTINUE_LT.1",
             "0;JMP",
 
             "(CONTINUE_LT.1)",
-            "@0",
+            "@SP",
             "M=M+1",
         ])
 
@@ -476,13 +476,13 @@ class TestStackOperations(unittest.TestCase):
         result_one = vm_translator.parse_compute_command(["gt"])
         result_two = vm_translator.parse_compute_command(["gt"])
         self.assertEqual(result_one, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
@@ -490,7 +490,7 @@ class TestStackOperations(unittest.TestCase):
             "M=D-M",
             "D=M",
 
-            "@0",
+            "@SP",
             "M=M-1",
 
 
@@ -500,30 +500,30 @@ class TestStackOperations(unittest.TestCase):
             "D;JLE",
 
             "(TEMP_GT.1)",
-            "@0",
+            "@SP",
             "A=M",
             "M=-1",
             "@CONTINUE_GT.1",
             "0;JMP",
 
             "(TEMP_NGT.1)",
-            "@0",
+            "@SP",
             "A=M",
             "M=0",
             "@CONTINUE_GT.1",
             "0;JMP",
 
             "(CONTINUE_GT.1)",
-            "@0",
+            "@SP",
             "M=M+1"])
         self.assertEqual(result_two, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
@@ -531,7 +531,7 @@ class TestStackOperations(unittest.TestCase):
             "M=D-M",
             "D=M",
 
-            "@0",
+            "@SP",
             "M=M-1",
 
 
@@ -541,79 +541,79 @@ class TestStackOperations(unittest.TestCase):
             "D;JLE",
 
             "(TEMP_GT.2)",
-            "@0",
+            "@SP",
             "A=M",
             "M=-1",
             "@CONTINUE_GT.2",
             "0;JMP",
 
             "(TEMP_NGT.2)",
-            "@0",
+            "@SP",
             "A=M",
             "M=0",
             "@CONTINUE_GT.2",
             "0;JMP",
 
             "(CONTINUE_GT.2)",
-            "@0",
+            "@SP",
             "M=M+1"])
 
     def test_translate_and(self):
         result = vm_translator.parse_compute_command(["and"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D&M",
-            "@0",
+            "@SP",
             "M=M-1",
             "@temp",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
     def test_translate_or(self):
         result = vm_translator.parse_compute_command(["or"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D",
 
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M-1",
             "D=M",
             "@temp",
             "M=D|M",
-            "@0",
+            "@SP",
             "M=M-1",
             "@temp",
             "D=M",
-            "@0",
+            "@SP",
             "A=M",
             "M=D",
-            "@0",
+            "@SP",
             "M=M+1"
         ])
 
     def test_translate_not(self):
         result = vm_translator.parse_compute_command(["not"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "A=M-1",
             "D=!M",
             "M=D"
@@ -634,7 +634,7 @@ class TestConditionals(unittest.TestCase):
     def test_translate_conditional_jump(self):
         result = vm_translator.parse_branch_command(["if-goto", "LOOPSTART"])
         self.assertEqual(result, [
-            "@0",
+            "@SP",
             "M=M-1",
             "A=M",
             "D=M",
@@ -643,18 +643,6 @@ class TestConditionals(unittest.TestCase):
         ])
 
 class TestFunctionCalls(unittest.TestCase):
-    def xtest_translate_call_function(self):
-        result = vm_translator.parse_function_command(["call", "foobar", "3"])
-        self.assertEqual(result, [""])
-
-    def xtest_translate_function_def(self):
-        result = vm_translator.parse_function_command(["function", "foobar", "3"])
-        self.assertEqual(result, ["(foobar)"])
-
-    def test_translate_function_return(self):
-        result = vm_translator.parse_function_command(["return"])
-        self.assertEqual(result, [])
-
     def test_function_calls_update_return_index(self):
         result = vm_translator.parse_function_command(["call", "foobar", "1"])
         self.assertIn("@foobar$ret.1", result)
