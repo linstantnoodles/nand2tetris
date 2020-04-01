@@ -15,11 +15,21 @@ nand2tetris is available as two separate courses on coursera:
 
 ## Is the code tested? 
 
-Yes! Every solution has been tested with the courses built-in test scripts. I've also written some of my own tests for some of the programming assignments. You'll find instructions on how to run my tests in the notes. 
+Yes! Every module has been verified to work (on my machine :D). I've also written some of my own tests for the the programming assignments (such as the vm translator and parts of the compiler).
 
-## Your code does not follow their API guidelines! 
+## Your code does not follow their API guidelines ...
 
-So I did go a bit rouge on some of the programming portions, so my design may not line up with what they suggest. That said, I'm considering adding additional solutions that _are_ based on their API guidelines so stay tuned.
+I went a bit rouge on some of the programming portions, so my design may not line up with what they suggest. That said, I'm considering adding additional solutions that _are_ based on their API guidelines so stay tuned.
 
 ## Feedback
+
 I would love to know if anything can be made better. Please let me know by submitting a PR!
+
+## TODO (Cleanup tasks / Optimizations)
+
+In order of importance ...
+
+* optimize the drawRectangle function in `Screen.jack`. Rendering objects takes forever right now. I think the bottleneck lives in drawLine, which is still doing pixel by pixel drawing for both vertical and horizontal lines.
+* test `Memory.jack` more thoroughly by internally inspecting the linked list. Would also be fun to write a defrag
+* refactor / cleanup multiplication and division algorithms in `Math.jack`. I rushed through this and I'm not sure if it's optimal right now
+* write up implementation notes / tips for the os services
