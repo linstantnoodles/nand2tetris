@@ -1,0 +1,354 @@
+class MazeGame {
+    field Maze maze;
+    field int rows, columns;
+    field int curr_player_row, curr_player_col;
+    field int board_x, board_y;
+
+    constructor MazeGame new(int aRows, int aColumns) {
+        let rows = aRows;
+        let columns = aColumns;
+        let board_x = 154;
+        let board_y = 0;
+        return this;
+    }
+
+    method void start() {
+       var Cell starting_cell;
+        var int row;
+        do draw_initial_grid();
+        let maze = Maze.new(rows, columns);
+        do maze.create_cells();
+        let starting_cell = maze.get_cell(0, 0);
+        do maze.generate_maze(starting_cell);
+        do update_view(maze);
+        do draw_player(curr_player_row, curr_player_col);
+        do setup_keyboard_listener();
+        return;
+   }
+
+    method void setup_keyboard_listener() {
+        var int direction;
+        var char key;  
+        var char prevKey;
+        var boolean exit;
+        let exit = false;
+        while (~exit) {
+            let prevKey = key;
+            let key = Keyboard.keyPressed();
+            if (key = 131) { let direction = 1; }   // up arrow
+            if (key = 133) { let direction = 2; }   // down arrow
+            if (key = 130) { let direction = 3; }   // left arrow
+            if (key = 132) { let direction = 4; }   // right arrow
+            if ((key = 0) & ~(prevKey = 0)) {
+                do move_player(direction);
+            }
+        } 
+        return;
+    }
+
+    method void move_player(int direction) {
+        var Cell curr_cell;
+        // up
+        if (direction = 1) {
+            let curr_cell = maze.get_cell(curr_player_row, curr_player_col);
+            if (~curr_cell.top_wall_active()) {
+                do erase_player();
+                do move_player_up();
+            }
+        }
+        if (direction = 2) {
+            // down
+            let curr_cell = maze.get_cell(curr_player_row, curr_player_col);
+            if (~curr_cell.bottom_wall_active()) {
+                do erase_player();
+                do move_player_down();
+            }
+
+        }
+        if (direction = 3) {
+            // left
+            let curr_cell = maze.get_cell(curr_player_row, curr_player_col);
+            if (~curr_cell.left_wall_active()) {
+                do erase_player();
+                do move_player_left();
+            }
+
+        }
+        if (direction = 4) {
+            // right
+            let curr_cell = maze.get_cell(curr_player_row, curr_player_col);
+            if (~curr_cell.right_wall_active()) {
+                do erase_player();
+                do move_player_right();
+            }
+
+        }
+        do Sys.wait(5);  // delays the next movement
+        return; 
+    }
+
+    method void move_player_up() {
+        let curr_player_row = curr_player_row - 1;
+        do draw_player(curr_player_row, curr_player_col);
+        return;
+    }
+
+    method void move_player_down() {
+        let curr_player_row = curr_player_row + 1;
+        do draw_player(curr_player_row, curr_player_col);
+        return;
+
+    }
+
+    method void move_player_left() {
+        let curr_player_col = curr_player_col - 1;
+        do draw_player(curr_player_row, curr_player_col);
+        return;
+
+    }
+
+    method void move_player_right() {
+        let curr_player_col = curr_player_col + 1;
+        do draw_player(curr_player_row, curr_player_col);
+        return;
+    }
+
+    method void erase_player() {
+        var int x1,y1,x2,y2;
+        var int wall_x1, wall_y1, wall_x2, wall_y2;
+        var int border_width, cell_width;
+        var int total_h_width;
+        var int x_offset;
+        var int y_offset;
+        var int res;
+        var int res2;
+
+        let border_width = 4;
+        let cell_width = 16;
+        let total_h_width = border_width + cell_width;
+
+        // Cell coordinate
+        let x1 = board_x + border_width;
+        let y1 = board_y + border_width;
+        let x_offset = curr_player_col * total_h_width;
+        let y_offset = curr_player_row * total_h_width;
+        let x1 = x1 + x_offset;
+        let y1 = y1 + y_offset;
+        let x1 = x1 + 1;
+        let y1 = y1 + 1;
+        let x2 = x1 + cell_width;
+        let y2 = y1 + cell_width;
+        let x2 = x2 - 2;
+        let y2 = y2 - 2;
+
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x1, y1, x2, y2);
+
+        return; 
+    }
+
+
+
+    method void draw_player(int row, int col) {
+        var int x1,y1,x2,y2;
+        var int wall_x1, wall_y1, wall_x2, wall_y2;
+        var int border_width, cell_width;
+        var int total_h_width;
+        var int x_offset;
+        var int y_offset;
+        var int res;
+        var int res2;
+
+        let border_width = 4;
+        let cell_width = 16;
+        let total_h_width = border_width + cell_width;
+
+        // Cell coordinate
+        let x1 = board_x + border_width;
+        let y1 = board_y + border_width;
+        let x_offset = col * total_h_width;
+        let y_offset = row * total_h_width;
+        let x1 = x1 + x_offset;
+        let y1 = y1 + y_offset;
+        let x1 = x1 + 8;
+        let y1 = y1 + 8;
+ 
+        do Screen.setColor(true);
+        do Screen.drawCircle(x1, y1, 3);
+        // let res = 32 * y1; 
+        // let res2 = x1 / 16;
+        // let res = res + res2;
+        return;
+    }
+
+    method void update_view(Maze game) {
+        var Array grid;
+        var boolean left_active, right_active, top_active, bottom_active;
+        var int rows;
+        var int cols;
+        var int curr_row;
+        var int curr_col;
+        var Cell curr_cell;
+        var Array row;
+
+        let rows = 10;
+        let cols = 10;
+        let grid = game.get_grid();
+
+        let curr_row = 0;
+        while (curr_row < rows)  {
+            let curr_col = 0;
+            while (curr_col < cols) {
+                let row = grid[curr_row];
+                let curr_cell = row[curr_col];
+
+                let left_active = curr_cell.left_wall_active();
+                if (~left_active) {
+                    do remove_wall(curr_row, curr_col, 0);
+                }
+                let right_active = curr_cell.right_wall_active();
+                if (~right_active) {
+                    do remove_wall(curr_row, curr_col, 1);
+                }
+                let top_active = curr_cell.top_wall_active();
+                if (~top_active) {
+                    do remove_wall(curr_row, curr_col, 2);
+                }
+                let bottom_active = curr_cell.bottom_wall_active();
+                if (~bottom_active) {
+                    do remove_wall(curr_row, curr_col, 3);
+                }
+                let curr_col = curr_col + 1;
+            }
+            let curr_row = curr_row + 1;
+        } 
+        return;
+    }
+
+    method void remove_wall(int row, int col, int direction) {
+        // Corner start of column
+        var int x1,y1,x2,y2;
+        var int wall_x1, wall_y1, wall_x2, wall_y2;
+        var int border_width, cell_width;
+        var int total_h_width;
+        var int x_offset;
+        var int y_offset;
+
+        let border_width = 4;
+        let cell_width = 16;
+        let total_h_width = border_width + cell_width;
+
+        // Cell coordinate
+        let x1 = board_x + border_width;
+        let y1 = board_y + border_width;
+        let x_offset = col * total_h_width;
+        let y_offset = row * total_h_width;
+        let x1 = x1 + x_offset;
+        let y1 = y1 + y_offset;
+        let x2 = x1 + cell_width;
+        let y2 = y1 + cell_width;
+
+        // Left wall = 0
+        if (direction = 0) {
+            let wall_x1 = x1 - border_width;
+            let wall_y1 = y1 + 1;
+            let wall_x2 = x1; 
+            let wall_y2 = y1 + cell_width;
+            let wall_y2 = wall_y2 - 1;
+        } 
+
+        // right
+        if (direction = 1) {
+            let wall_x1 = x1 + cell_width;
+            let wall_y1 = y1 + 1;
+            let wall_x2 = x1 + total_h_width; 
+            let wall_y2 = y2;
+            let wall_y2 = wall_y2 - 1;
+        }
+        
+        // top 
+        if (direction = 2) {
+            let wall_x1 = x1 + 1;
+            let wall_y1 = y1 - border_width;
+            let wall_x2 = x2 - 1; 
+            let wall_y2 = y1;
+        }
+        
+        if (direction = 3) {
+            let wall_x1 = x1 + 1;
+            let wall_y1 = y1 + cell_width;
+            let wall_x2 = x2 - 1;  // Need to look into why I need to do this off by 1 
+            let wall_y2 = y2 + border_width;
+        }
+        
+        do Screen.setColor(false);
+        do Screen.drawRectangle(wall_x1, wall_y1, wall_x2, wall_y2);
+        return; 
+    }
+
+    method void draw_initial_grid() {
+        var int border_width;
+        var int border_count;
+        var int curr_border_count;
+        var int cell_width;
+        var int total_width;
+        var int cell_count;
+        var int side_frame_x1, side_frame_x2;
+       
+        var int current_border_pos;
+        var int current_border_pos_y;
+        var int current_border_pos_yright;
+        var int current_border_pos_xleft;
+        var int current_border_pos_xhorizontal;
+        var int current_border_pos_yvertical;
+        var int exit_y1, exit_x2, exit_y2;
+
+        let cell_count = 10;
+        let border_count = cell_count + 1;
+        let border_width = 4;
+        let curr_border_count = 0;
+        let cell_width = 16;
+        let total_width = 204;
+
+        let current_border_pos = board_x;
+        let current_border_pos_y = board_y;
+        let current_border_pos_xhorizontal = total_width + current_border_pos;
+        let current_border_pos_yvertical= total_width + current_border_pos_y;
+        let curr_border_count = 0;
+        while (curr_border_count < border_count) {
+            // Vertical lines
+            let current_border_pos_xleft = current_border_pos + border_width;
+            do Screen.drawRectangle(current_border_pos, board_y, current_border_pos_xleft, current_border_pos_yvertical);
+
+            // Horizontal lines
+            let current_border_pos_yright = current_border_pos_y + border_width;
+            do Screen.drawRectangle(board_x, current_border_pos_y, current_border_pos_xhorizontal, current_border_pos_yright);
+
+            let current_border_pos = current_border_pos + border_width + cell_width;
+            let current_border_pos_y = current_border_pos_y + border_width + cell_width;
+
+            let curr_border_count = curr_border_count + 1;
+        }
+        // Draw side borders
+        let side_frame_x1 = board_x + border_width;
+        let side_frame_x2 = current_border_pos_xhorizontal - border_width;
+        do Screen.drawRectangle(0, 0, side_frame_x1, 255);
+        do Screen.drawRectangle(side_frame_x2, board_y, 511, 255);
+        
+        // Draw exit
+        do Screen.setColor(false);
+        let exit_y1 = current_border_pos_yvertical - cell_width;
+        let exit_y1 = exit_y1 - border_width;
+        let exit_y1 = exit_y1 + 1;
+        let exit_x2 = side_frame_x2 + cell_width;
+        let exit_y2 = current_border_pos_yvertical - border_width;
+        let exit_y2 = exit_y2 - 1;
+        do Screen.drawRectangle(side_frame_x2, exit_y1, exit_x2, exit_y2);
+        return;
+    }
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

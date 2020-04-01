@@ -1,0 +1,75 @@
+class Cell {
+    field wall left, right, top, bottom; 
+    field int row, col;
+    field boolean visited; 
+
+    constructor Cell new(int myrow, int mycol, boolean myleft, boolean myright, boolean mytop, boolean mybottom) {
+        let row = myrow;
+        let col = mycol;
+        let visited = false;
+
+        let left = myleft;
+        let right = myright;
+        let top = mytop;
+        let bottom = mybottom;
+        return this;
+    }
+
+    method void mark_as_visited() {
+        let visited = true;
+        return;
+    }
+
+    method boolean is_visited() {
+        return visited;
+    }
+
+    method void clear_left_wall() {
+        let left = false;
+        return;
+    }
+
+    method void clear_right_wall() {
+        let right = false;
+        return;
+    }
+
+    method void clear_top_wall() {
+        let top = false;
+        return;
+    }
+
+    method void clear_bottom_wall() {
+        let bottom = false;
+        return;
+    }
+
+    method boolean left_wall_active() {
+        return left; 
+    }
+
+    method boolean right_wall_active() {
+        return right; 
+    }
+
+    method boolean top_wall_active() {
+        return top; 
+    }
+
+    method boolean bottom_wall_active() {
+        return bottom; 
+    }
+
+    method int get_row() {
+        return row; 
+    }
+
+    method int get_col() {
+        return col; 
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

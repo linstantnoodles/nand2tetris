@@ -1,0 +1,200 @@
+class Maze {
+    field int rows, columns;
+    field int randstate;
+    field Array grid;
+     
+    constructor Maze new(int myrows, int mycolumns) {
+        let rows = myrows;  
+        let columns = mycolumns;  
+        let randstate = 31;
+        return this;
+    }
+
+    method Array get_grid() {
+        return grid; 
+    }
+
+    method void create_cells() {
+        var int curr_row;
+        var int curr_col;
+        var Array row;
+
+        let curr_row = 0;
+
+        let grid = Array.new(10);
+
+        while (curr_row < rows) {
+            let grid[curr_row] = Array.new(10);
+            let curr_row = curr_row + 1;
+        }
+
+        let curr_row = 0;
+        while (curr_row < rows)  {
+            let curr_col = 0;
+            while (curr_col < columns) {
+                let row = grid[curr_row];
+                let row[curr_col] = Cell.new(curr_row, curr_col, true, true, true, true);
+                let curr_col = curr_col + 1;
+            }
+            let curr_row = curr_row + 1;
+        } 
+        return;
+    }
+
+    method void generate_maze(Cell cell) {
+        var Array cell_neighbors;
+        var Array visit_order;
+        var boolean neighbor_visited;
+        var int neighbor_index;
+        var Cell curr_cell;
+        var int spot;
+        var int temp;
+        var int visit_index;
+
+        let cell_neighbors = neighbors(cell);
+        let visit_order = Array.new(4);
+        let visit_order[0] = 0;
+        let visit_order[1] = 1;
+        let visit_order[2] = 2;
+        let visit_order[3] = 3;
+
+        let neighbor_index = 0; 
+
+        do cell.mark_as_visited();
+
+        let spot = get_random(4);
+        let temp = visit_order[0];
+        let visit_order[0] = visit_order[spot];
+        let visit_order[spot] = temp;
+        
+        while (neighbor_index < 4) {
+            let visit_index = visit_order[neighbor_index];
+            let curr_cell = cell_neighbors[visit_index];
+            if (~(curr_cell = null)) {
+                let neighbor_visited = curr_cell.is_visited();
+                if (~neighbor_visited) {
+                    if (visit_index = 0) {
+                        do cell.clear_left_wall();
+                        do curr_cell.clear_right_wall();
+                    }
+                    if (visit_index = 1) {
+                        do cell.clear_right_wall();
+                        do curr_cell.clear_left_wall();
+                    }
+                    if (visit_index = 2) {
+                        do cell.clear_top_wall();
+                        do curr_cell.clear_bottom_wall();
+                    }
+                    if (visit_index = 3) {
+                        do cell.clear_bottom_wall();
+                        do curr_cell.clear_top_wall();
+                    }
+                    do generate_maze(curr_cell);
+                }
+            }
+            let neighbor_index = neighbor_index + 1;
+        }
+        return;
+    }
+
+    method Array neighbors(Cell cell) {
+        var int leftx, lefty, rightx, righty, topx, topy, bottomx, bottomy;
+        var Array curr_row;
+        var boolean is_visited;
+        var Cell curr_cell;
+        var Array neighbor_list;
+        var int curr_neighbor;
+        
+        let curr_neighbor = 0;
+        let neighbor_list = Array.new(4);
+
+
+        // left
+        let leftx = cell.get_row();
+        let lefty = cell.get_col() - 1;
+        
+        if (lefty > -1) {
+            let curr_row = grid[leftx];
+            let curr_cell = curr_row[lefty];
+            let is_visited = curr_cell.is_visited();
+            if (~(is_visited)) {
+                let neighbor_list[0] = curr_cell;
+            }
+        }
+
+        // right
+        let rightx = cell.get_row();
+        let righty = cell.get_col() + 1;
+
+        if (righty < columns) {
+            let curr_row = grid[rightx];
+            let curr_cell = curr_row[righty];
+            let is_visited = curr_cell.is_visited();
+            if (~(is_visited)) {
+                let neighbor_list[1] = curr_cell;
+            }
+        }
+
+
+        // top
+        let topx = cell.get_row() - 1;
+        let topy = cell.get_col();
+
+        if (topx > -1) {
+            let curr_row = grid[topx];
+            let curr_cell = curr_row[topy];
+            let is_visited = curr_cell.is_visited();
+            if (~(is_visited)) {
+                let neighbor_list[2] = curr_cell;
+            }
+        }
+
+
+        // bottom
+        let bottomx = cell.get_row() + 1;
+        let bottomy = cell.get_col();
+
+        if (bottomx < rows) {
+            let curr_row = grid[bottomx];
+            let curr_cell = curr_row[bottomy];
+            let is_visited = curr_cell.is_visited();
+            if (~(is_visited)) {
+                let neighbor_list[3] = curr_cell;
+            }
+        }
+    
+        return neighbor_list;
+    }
+
+    method Cell get_cell(int row, int col) {
+        var Array crow;
+        let crow = grid[row];
+        return crow[col];
+    }
+
+    method int get_random(int n) {
+        var int v; 
+        let v = randstate * 31;
+        let randstate = v + 1;
+        if (v < 0) {
+            let v = -v; 
+        }
+        let v = modulo(v, n);
+        return v;
+    }
+
+    method int modulo(int a, int n) {
+        var int c;
+        let c = 0;
+        while (c < a) {
+            let c = c + n;
+        }
+        let a = c - a; 
+        return a;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

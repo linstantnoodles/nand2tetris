@@ -1,0 +1,8 @@
+class Main {
+    function void main() {
+        var MazeGame game;
+        let game = MazeGame.new(10, 10);
+        do game.start();
+        return;
+    }
+}
