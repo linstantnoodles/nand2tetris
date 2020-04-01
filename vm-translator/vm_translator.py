@@ -70,7 +70,6 @@ def is_function_command(instruction):
     return instruction[0] in ["call", "function", "return"]
 
 def parse_function_command(instruction):
-    # every call has a corresponding return for this function
     if instruction[0] == "call":
         fn_name = instruction[1]
         fn_return_idx = return_index(fn_name)
@@ -82,10 +81,8 @@ def parse_function_command(instruction):
             "@SP", 
             "A=M",
             "M=D",
-            # increment pointer
             "@SP", 
             "M=M+1",
-
             # push lcl into stack
             "@LCL", 
             "D=M",
@@ -94,7 +91,6 @@ def parse_function_command(instruction):
             "M=D",
             "@SP", 
             "M=M+1",
-
             # push arg into stack
             "@ARG", 
             "D=M",
@@ -103,7 +99,6 @@ def parse_function_command(instruction):
             "M=D",
             "@SP", 
             "M=M+1",
-
             # push this into stack
             "@THIS", 
             "D=M",
@@ -112,7 +107,6 @@ def parse_function_command(instruction):
             "M=D",
             "@SP", 
             "M=M+1",
-
             # push that into stack
             "@THAT", 
             "D=M",
@@ -121,30 +115,25 @@ def parse_function_command(instruction):
             "M=D",
             "@SP", 
             "M=M+1",
-
-            # SP - 5 - nargs
+            # compute (SP - 5 - nargs) so we can reposition our argument pointer
             "@5",
             "D=A",
             "@SP",
             "D=M-D",
             "@{}".format(arg_count),
             "D=D-A",
-
-            # reposition arg
+            # reposition arg which sets the pointer to the first argument we pushed for this function call
             "@ARG",
             "M=D",
-
-            # LCL = SP
+            # LCL = SP. Basically, our local segment starts right after the call frame we created (through pushing)
             "@SP",
             "D=M",
             "@LCL",
             "M=D",
-
-            # jump
+            # jump to our function and let the magic happen
             "@{}".format(fn_name),
             "0;JMP",
-
-            # set return label 
+            # set return label. This is where we want the function to continue from
             "({}$ret.{})".format(fn_name, fn_return_idx)
         ]
     if instruction[0] == "function":
@@ -155,7 +144,7 @@ def parse_function_command(instruction):
         return ["({})".format(instruction[1])] + push_cmds
     if instruction[0] == "return":
         return [
-            # endFrame = LCL
+            # endFrame = LCL. We know this because we set our current LCL to be right after our frame.
             "@LCL",
             "D=M",
             "@endFrame",
@@ -167,7 +156,6 @@ def parse_function_command(instruction):
             "D=M",
             "@returnAddr",
             "M=D",
-
             # Set *ARG=result (value at top of stack)
             "@SP",
             "D=M-1",
@@ -178,14 +166,12 @@ def parse_function_command(instruction):
             "M=D",
             "@SP",
             "M=M-1",
-
-            # update SP
+            # update SP. This actually reclaims the memory.
             "@ARG",
             "D=M",
             "@SP",
             "M=D+1",
-
-            # set LCL
+            # restore THAT
             "@1",
             "D=A",
             "@endFrame",
@@ -194,8 +180,7 @@ def parse_function_command(instruction):
             "D=M",
             "@THAT",
             "M=D",
-
-            # set ARG
+            # restore THIS
             "@2",
             "D=A",
             "@endFrame",
@@ -204,8 +189,7 @@ def parse_function_command(instruction):
             "D=M",
             "@THIS",
             "M=D",
-
-            # set THIS
+            # restore ARG 
             "@3",
             "D=A",
             "A=M",
@@ -215,8 +199,7 @@ def parse_function_command(instruction):
             "D=M",
             "@ARG",
             "M=D",
-
-            # set THAT
+            # restore LCL 
             "@4",
             "D=A",
             "@endFrame",
@@ -225,8 +208,7 @@ def parse_function_command(instruction):
             "D=M",
             "@LCL",
             "M=D",
-
-            # return
+            # return!
             "@returnAddr",
             "A=M",
             "0;JMP"
