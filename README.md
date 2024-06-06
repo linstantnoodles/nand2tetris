@@ -19,7 +19,7 @@ Yes! Every module has been verified to work (on my machine :D). I've also writte
 
 ## Your code does not follow their API guidelines ...
 
-I went a bit rouge on some of the programming portions, so my design may not line up with what they suggest. That said, I'm considering adding additional solutions that _are_ based on their API guidelines so stay tuned.
+I went a bit rouge on some of the programming portions, so my design may not line up with what they suggest...
 
 ## Feedback
 
